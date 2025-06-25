@@ -37,7 +37,7 @@ interface ActivityListProps {
 const ActivityList: React.FC<ActivityListProps> = ({ onCreateNew, onEdit }) => {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
   const [selectedActivity, setSelectedActivity] = useState<Activity | null>(null);
 
   // 模拟数据
@@ -129,7 +129,7 @@ const ActivityList: React.FC<ActivityListProps> = ({ onCreateNew, onEdit }) => {
 
   const filteredActivities = activities.filter(activity => {
     const matchesSearch = activity.name.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = !statusFilter || activity.status === statusFilter;
+    const matchesStatus = statusFilter === 'all' || activity.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
 
@@ -238,7 +238,7 @@ const ActivityList: React.FC<ActivityListProps> = ({ onCreateNew, onEdit }) => {
                 <SelectValue placeholder="筛选状态" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">全部状态</SelectItem>
+                <SelectItem value="all">全部状态</SelectItem>
                 <SelectItem value="待开始">待开始</SelectItem>
                 <SelectItem value="活动中">活动中</SelectItem>
                 <SelectItem value="已暂停">已暂停</SelectItem>
