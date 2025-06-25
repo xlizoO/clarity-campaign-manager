@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,11 +28,13 @@ interface ActivityConfig {
 
 interface ActivityConfigFormProps {
   onSave: (config: ActivityConfig) => void;
+  onCancel?: () => void;
   initialData?: Partial<ActivityConfig>;
 }
 
-const ActivityConfigForm: React.FC<ActivityConfigFormProps> = ({ onSave, initialData }) => {
+const ActivityConfigForm: React.FC<ActivityConfigFormProps> = ({ onSave, onCancel, initialData }) => {
   const { toast } = useToast();
+  
   const [config, setConfig] = useState<ActivityConfig>({
     name: initialData?.name || '',
     startDate: initialData?.startDate,
@@ -81,6 +82,12 @@ const ActivityConfigForm: React.FC<ActivityConfigFormProps> = ({ onSave, initial
       title: "保存成功",
       description: "活动配置已保存",
     });
+  };
+
+  const handleCancel = () => {
+    if (onCancel) {
+      onCancel();
+    }
   };
 
   const addSingleAid = () => {
@@ -337,7 +344,7 @@ const ActivityConfigForm: React.FC<ActivityConfigFormProps> = ({ onSave, initial
 
           {/* 操作按钮 */}
           <div className="flex justify-center gap-4 pt-4">
-            <Button variant="outline" className="px-8">
+            <Button variant="outline" className="px-8" onClick={handleCancel}>
               取消
             </Button>
             <Button onClick={handleSave} className="px-8">

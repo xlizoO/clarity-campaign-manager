@@ -14,9 +14,13 @@ const ActivityConfig = () => {
     }, 1000);
   };
 
+  const handleCancel = () => {
+    navigate('/activity-management');
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
-      <ActivityConfigForm onSave={handleSave} />
+      <ActivityConfigForm onSave={handleSave} onCancel={handleCancel} />
     </div>
   );
 };
