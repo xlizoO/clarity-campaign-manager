@@ -1,8 +1,7 @@
-
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
-import { Settings, List, Plus } from "lucide-react";
+import { Settings, List, Plus, Eye } from "lucide-react";
 
 const Index = () => {
   const navigate = useNavigate();
