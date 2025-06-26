@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { CalendarIcon, Upload, Plus, X } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -20,8 +22,10 @@ interface ActivityConfig {
   userSubType: string;
   dmpId: string;
   offlineTag: string;
+  userBlacklist: string[];
   contentAids: string[];
-  durationLimit: string;
+  durationLimitType: string; // 'minutes' | 'percentage'
+  durationLimitValue: string;
   frequencyType: string;
   frequencyValue: string;
 }
@@ -43,17 +47,21 @@ const ActivityConfigForm: React.FC<ActivityConfigFormProps> = ({ onSave, onCance
     userSubType: initialData?.userSubType || '',
     dmpId: initialData?.dmpId || '',
     offlineTag: initialData?.offlineTag || '',
+    userBlacklist: initialData?.userBlacklist || [],
     contentAids: initialData?.contentAids || [],
-    durationLimit: initialData?.durationLimit || '',
+    durationLimitType: initialData?.durationLimitType || 'minutes',
+    durationLimitValue: initialData?.durationLimitValue || '',
     frequencyType: initialData?.frequencyType || 'daily',
     frequencyValue: initialData?.frequencyValue || '',
   });
 
   const [newAid, setNewAid] = useState('');
   const [bulkAids, setBulkAids] = useState('');
+  const [newUid, setNewUid] = useState('');
+  const [bulkUids, setBulkUids] = useState('');
 
   const userSubTypeOptions = {
-    '全部用户': ['会员新客', '会员老客', '即期会员', '在期会员'],
+    '全部用户': ['全部用户', '会员新客', '会员老客', '即期会员', '在期会员'],
     'DMP指定人群包': [],
     '离线人群标签': ['高价值用户', '活跃用户', '流失用户', '新注册用户', '付费用户']
   };
@@ -113,6 +121,32 @@ const ActivityConfigForm: React.FC<ActivityConfigFormProps> = ({ onSave, onCance
     setConfig({
       ...config,
       contentAids: config.contentAids.filter(aid => aid !== aidToRemove)
+    });
+  };
+
+  const addSingleUid = () => {
+    if (newUid.trim() && !config.userBlacklist.includes(newUid.trim())) {
+      setConfig({
+        ...config,
+        userBlacklist: [...config.userBlacklist, newUid.trim()]
+      });
+      setNewUid('');
+    }
+  };
+
+  const addBulkUids = () => {
+    const uids = bulkUids.split('\n').map(uid => uid.trim()).filter(uid => uid && !config.userBlacklist.includes(uid));
+    setConfig({
+      ...config,
+      userBlacklist: [...config.userBlacklist, ...uids]
+    });
+    setBulkUids('');
+  };
+
+  const removeUid = (uidToRemove: string) => {
+    setConfig({
+      ...config,
+      userBlacklist: config.userBlacklist.filter(uid => uid !== uidToRemove)
     });
   };
 
@@ -251,6 +285,60 @@ const ActivityConfigForm: React.FC<ActivityConfigFormProps> = ({ onSave, onCance
             )}
           </div>
 
+          {/* 用户黑名单 */}
+          <div className="space-y-4">
+            <Label>用户黑名单 (UID)</Label>
+            
+            {/* 单个添加 */}
+            <div className="flex gap-2">
+              <Input
+                value={newUid}
+                onChange={(e) => setNewUid(e.target.value)}
+                placeholder="输入单个用户UID"
+                className="flex-1"
+              />
+              <Button onClick={addSingleUid} variant="outline" size="icon">
+                <Plus className="h-4 w-4" />
+              </Button>
+            </div>
+
+            {/* 批量导入 */}
+            <div className="space-y-2">
+              <Textarea
+                value={bulkUids}
+                onChange={(e) => setBulkUids(e.target.value)}
+                placeholder="批量导入用户UID，每行一个"
+                rows={4}
+              />
+              <Button onClick={addBulkUids} variant="outline" className="w-full">
+                <Upload className="mr-2 h-4 w-4" />
+                批量导入用户UID
+              </Button>
+            </div>
+
+            {/* 已添加的用户黑名单 */}
+            {config.userBlacklist.length > 0 && (
+              <div className="space-y-2">
+                <Label>已添加的用户UID ({config.userBlacklist.length}个)</Label>
+                <div className="max-h-32 overflow-y-auto border rounded-md p-2 space-y-1">
+                  {config.userBlacklist.map((uid, index) => (
+                    <div key={index} className="flex items-center justify-between bg-gray-50 px-2 py-1 rounded">
+                      <span className="text-sm">{uid}</span>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removeUid(uid)}
+                        className="h-6 w-6 p-0"
+                      >
+                        <X className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
           {/* 清晰度限免内容 */}
           <div className="space-y-4">
             <Label>清晰度限免内容 (AID) *</Label>
@@ -309,15 +397,37 @@ const ActivityConfigForm: React.FC<ActivityConfigFormProps> = ({ onSave, onCance
           <div className="space-y-4">
             <Label>清晰度限免规则</Label>
             <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>限免时长（分钟）</Label>
-                <Input
-                  type="number"
-                  value={config.durationLimit}
-                  onChange={(e) => setConfig({ ...config, durationLimit: e.target.value })}
-                  placeholder="请输入限免时长"
-                />
+              <div className="space-y-4">
+                <Label>限免时长</Label>
+                <RadioGroup 
+                  value={config.durationLimitType} 
+                  onValueChange={(value) => setConfig({ ...config, durationLimitType: value, durationLimitValue: '' })}
+                  className="flex gap-4"
+                >
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="minutes" id="minutes" />
+                    <Label htmlFor="minutes">固定分钟数</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="percentage" id="percentage" />
+                    <Label htmlFor="percentage">ep时长百分比</Label>
+                  </div>
+                </RadioGroup>
+                
+                <div className="flex gap-2 items-center">
+                  <Input
+                    type="number"
+                    value={config.durationLimitValue}
+                    onChange={(e) => setConfig({ ...config, durationLimitValue: e.target.value })}
+                    placeholder={config.durationLimitType === 'minutes' ? "输入分钟数" : "输入百分比"}
+                    className="flex-1"
+                  />
+                  <span className="text-sm text-gray-500">
+                    {config.durationLimitType === 'minutes' ? '分钟' : '%'}
+                  </span>
+                </div>
               </div>
+              
               <div className="space-y-2">
                 <Label>限免频次</Label>
                 <div className="flex gap-2">
@@ -325,7 +435,7 @@ const ActivityConfigForm: React.FC<ActivityConfigFormProps> = ({ onSave, onCance
                     type="number"
                     value={config.frequencyValue}
                     onChange={(e) => setConfig({ ...config, frequencyValue: e.target.value })}
-                    placeholder="次数"
+                    placeholder="次数（-1为不限次数）"
                     className="flex-1"
                   />
                   <Select value={config.frequencyType} onValueChange={(value) => setConfig({ ...config, frequencyType: value })}>
@@ -338,6 +448,9 @@ const ActivityConfigForm: React.FC<ActivityConfigFormProps> = ({ onSave, onCance
                     </SelectContent>
                   </Select>
                 </div>
+                {config.frequencyValue === '-1' && (
+                  <p className="text-sm text-blue-600">设置为-1表示不限制使用次数</p>
+                )}
               </div>
             </div>
           </div>
