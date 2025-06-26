@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -359,66 +358,62 @@ const ActivityConfigForm: React.FC<ActivityConfigFormProps> = ({ onSave, onCance
             )}
           </div>
 
-          {/* 清晰度限免规则 */}
+          {/* 每次限免试用时长 */}
           <div className="space-y-4">
-            <Label>清晰度限免规则</Label>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-4">
-                <Label>每次限免试用时长</Label>
-                <RadioGroup 
-                  value={config.durationLimitType} 
-                  onValueChange={(value) => setConfig({ ...config, durationLimitType: value, durationLimitValue: '' })}
-                  className="flex gap-4"
-                >
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="minutes" id="minutes" />
-                    <Label htmlFor="minutes">固定分钟数</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="percentage" id="percentage" />
-                    <Label htmlFor="percentage">ep时长百分比</Label>
-                  </div>
-                </RadioGroup>
-                
-                <div className="flex gap-2 items-center">
-                  <Input
-                    type="number"
-                    value={config.durationLimitValue}
-                    onChange={(e) => setConfig({ ...config, durationLimitValue: e.target.value })}
-                    placeholder={config.durationLimitType === 'minutes' ? "输入分钟数" : "输入百分比"}
-                    className="flex-1"
-                  />
-                  <span className="text-sm text-gray-500">
-                    {config.durationLimitType === 'minutes' ? '分钟' : '%'}
-                  </span>
-                </div>
+            <Label>每次限免试用时长</Label>
+            <RadioGroup 
+              value={config.durationLimitType} 
+              onValueChange={(value) => setConfig({ ...config, durationLimitType: value, durationLimitValue: '' })}
+              className="flex gap-4"
+            >
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="minutes" id="minutes" />
+                <Label htmlFor="minutes">固定分钟数</Label>
               </div>
-              
-              <div className="space-y-2">
-                <Label>每个稿件限免次数</Label>
-                <div className="flex gap-2">
-                  <Input
-                    type="number"
-                    value={config.frequencyValue}
-                    onChange={(e) => setConfig({ ...config, frequencyValue: e.target.value })}
-                    placeholder="次数（-1为不限次数）"
-                    className="flex-1"
-                  />
-                  <Select value={config.frequencyType} onValueChange={(value) => setConfig({ ...config, frequencyType: value })}>
-                    <SelectTrigger className="w-32">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="daily">次/天</SelectItem>
-                      <SelectItem value="campaign">活动周期内</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                {config.frequencyValue === '-1' && (
-                  <p className="text-sm text-blue-600">设置为-1表示不限制使用次数</p>
-                )}
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="percentage" id="percentage" />
+                <Label htmlFor="percentage">ep时长百分比</Label>
               </div>
+            </RadioGroup>
+            
+            <div className="flex gap-2 items-center">
+              <Input
+                type="number"
+                value={config.durationLimitValue}
+                onChange={(e) => setConfig({ ...config, durationLimitValue: e.target.value })}
+                placeholder={config.durationLimitType === 'minutes' ? "输入分钟数" : "输入百分比"}
+                className="flex-1"
+              />
+              <span className="text-sm text-gray-500">
+                {config.durationLimitType === 'minutes' ? '分钟' : '%'}
+              </span>
             </div>
+          </div>
+
+          {/* 每个稿件限免次数 */}
+          <div className="space-y-2">
+            <Label>每个稿件限免次数</Label>
+            <div className="flex gap-2">
+              <Input
+                type="number"
+                value={config.frequencyValue}
+                onChange={(e) => setConfig({ ...config, frequencyValue: e.target.value })}
+                placeholder="次数（-1为不限次数）"
+                className="flex-1"
+              />
+              <Select value={config.frequencyType} onValueChange={(value) => setConfig({ ...config, frequencyType: value })}>
+                <SelectTrigger className="w-32">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="daily">次/天</SelectItem>
+                  <SelectItem value="campaign">活动周期内</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            {config.frequencyValue === '-1' && (
+              <p className="text-sm text-blue-600">设置为-1表示不限制使用次数</p>
+            )}
           </div>
 
           {/* 操作按钮 */}
