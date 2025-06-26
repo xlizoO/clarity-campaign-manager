@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Search, Plus, Edit, Pause, Play, Eye, Trash2 } from "lucide-react";
+import { Search, Plus, Edit, Pause, Play, Eye, Trash2, FileText, Send } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 
@@ -25,7 +24,8 @@ interface Activity {
   frequencyType: string;
   frequencyValue: string;
   status: '待开始' | '活动中' | '已暂停' | '已下线' | '已完成';
-  lastUpdatedBy: string;
+  approvalStatus: '待提交审核' | '审核中' | '审核通过' | '已驳回';
+  submittedBy: string;
   createdAt: Date;
 }
 
@@ -40,21 +40,21 @@ const ActivityList: React.FC<ActivityListProps> = ({ onCreateNew, onEdit }) => {
   const [statusFilter, setStatusFilter] = useState('all');
   const [selectedActivity, setSelectedActivity] = useState<Activity | null>(null);
 
-  // 模拟数据
+  // 模拟数据 - 包含所有状态组合
   const [activities, setActivities] = useState<Activity[]>([
     {
       id: '1',
       name: '春节限免活动',
       startDate: new Date('2024-02-01'),
       endDate: new Date('2024-02-15'),
-      userType: '全部用户',
-      userSubType: '会员新客',
+      userType: '全部非会员',
       contentAids: ['AID001', 'AID002', 'AID003'],
       durationLimit: '30',
       frequencyType: 'daily',
       frequencyValue: '3',
       status: '活动中',
-      lastUpdatedBy: '张三',
+      approvalStatus: '审核通过',
+      submittedBy: '张三',
       createdAt: new Date('2024-01-20'),
     },
     {
@@ -69,7 +69,8 @@ const ActivityList: React.FC<ActivityListProps> = ({ onCreateNew, onEdit }) => {
       frequencyType: 'campaign',
       frequencyValue: '10',
       status: '待开始',
-      lastUpdatedBy: '李四',
+      approvalStatus: '待提交审核',
+      submittedBy: '李四',
       createdAt: new Date('2024-02-15'),
     },
     {
@@ -84,8 +85,40 @@ const ActivityList: React.FC<ActivityListProps> = ({ onCreateNew, onEdit }) => {
       frequencyType: 'daily',
       frequencyValue: '5',
       status: '已完成',
-      lastUpdatedBy: '王五',
+      approvalStatus: '审核通过',
+      submittedBy: '王五',
       createdAt: new Date('2024-01-10'),
+    },
+    {
+      id: '4',
+      name: '新用户体验活动',
+      startDate: new Date('2024-03-15'),
+      endDate: new Date('2024-03-30'),
+      userType: '会员新客',
+      userSubType: '新注册用户',
+      contentAids: ['AID010', 'AID011'],
+      durationLimit: '20',
+      frequencyType: 'daily',
+      frequencyValue: '2',
+      status: '已暂停',
+      approvalStatus: '审核中',
+      submittedBy: '赵六',
+      createdAt: new Date('2024-03-01'),
+    },
+    {
+      id: '5',
+      name: '周末特惠活动',
+      startDate: new Date('2024-02-10'),
+      endDate: new Date('2024-02-25'),
+      userType: '全部非会员',
+      contentAids: ['AID012', 'AID013', 'AID014'],
+      durationLimit: '15',
+      frequencyType: 'campaign',
+      frequencyValue: '-1',
+      status: '已下线',
+      approvalStatus: '已驳回',
+      submittedBy: '钱七',
+      createdAt: new Date('2024-02-05'),
     },
   ]);
 
@@ -106,6 +139,22 @@ const ActivityList: React.FC<ActivityListProps> = ({ onCreateNew, onEdit }) => {
     );
   };
 
+  const getApprovalStatusBadge = (approvalStatus: string) => {
+    const statusConfig = {
+      '待提交审核': { variant: 'secondary' as const, color: 'bg-gray-100 text-gray-800' },
+      '审核中': { variant: 'default' as const, color: 'bg-blue-100 text-blue-800' },
+      '审核通过': { variant: 'default' as const, color: 'bg-green-100 text-green-800' },
+      '已驳回': { variant: 'destructive' as const, color: 'bg-red-100 text-red-800' },
+    };
+    
+    const config = statusConfig[approvalStatus as keyof typeof statusConfig];
+    return (
+      <Badge variant={config.variant} className={config.color}>
+        {approvalStatus}
+      </Badge>
+    );
+  };
+
   const handleStatusChange = (activityId: string, newStatus: string) => {
     setActivities(activities.map(activity => 
       activity.id === activityId 
@@ -116,6 +165,26 @@ const ActivityList: React.FC<ActivityListProps> = ({ onCreateNew, onEdit }) => {
     toast({
       title: "状态更新成功",
       description: `活动状态已更新为：${newStatus}`,
+    });
+  };
+
+  const handleSubmitForApproval = (activityId: string) => {
+    setActivities(activities.map(activity => 
+      activity.id === activityId 
+        ? { ...activity, approvalStatus: '审核中' as Activity['approvalStatus'] }
+        : activity
+    ));
+    
+    toast({
+      title: "提交成功",
+      description: "活动已提交审核",
+    });
+  };
+
+  const handleViewApprovalDetails = (activityId: string) => {
+    toast({
+      title: "跳转审核详情",
+      description: `查看活动 ${activityId} 的审核详情`,
     });
   };
 
@@ -152,6 +221,17 @@ const ActivityList: React.FC<ActivityListProps> = ({ onCreateNew, onEdit }) => {
               </div>
             </div>
             
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="font-medium text-sm text-gray-600">审核状态</label>
+                <div className="mt-1">{getApprovalStatusBadge(selectedActivity.approvalStatus)}</div>
+              </div>
+              <div>
+                <label className="font-medium text-sm text-gray-600">提交人</label>
+                <p className="mt-1">{selectedActivity.submittedBy}</p>
+              </div>
+            </div>
+
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="font-medium text-sm text-gray-600">开始时间</label>
@@ -201,7 +281,7 @@ const ActivityList: React.FC<ActivityListProps> = ({ onCreateNew, onEdit }) => {
 
             <div>
               <label className="font-medium text-sm text-gray-600">最近更新人</label>
-              <p className="mt-1">{selectedActivity.lastUpdatedBy}</p>
+              <p className="mt-1">{selectedActivity.submittedBy}</p>
             </div>
           </div>
         )}
@@ -214,7 +294,7 @@ const ActivityList: React.FC<ActivityListProps> = ({ onCreateNew, onEdit }) => {
       <Card>
         <CardHeader>
           <div className="flex justify-between items-center">
-            <CardTitle className="text-2xl font-bold">清晰度限免活动管理</CardTitle>
+            <CardTitle className="text-2xl font-bold">会员清晰度限免管理</CardTitle>
             <Button onClick={onCreateNew} className="flex items-center gap-2">
               <Plus className="h-4 w-4" />
               新建活动
@@ -258,8 +338,9 @@ const ActivityList: React.FC<ActivityListProps> = ({ onCreateNew, onEdit }) => {
                   <TableHead>用户类型</TableHead>
                   <TableHead>限免内容</TableHead>
                   <TableHead>限免规则</TableHead>
-                  <TableHead>状态</TableHead>
-                  <TableHead>最近更新人</TableHead>
+                  <TableHead>活动状态</TableHead>
+                  <TableHead>审核状态</TableHead>
+                  <TableHead>提交人</TableHead>
                   <TableHead className="text-center">操作</TableHead>
                 </TableRow>
               </TableHeader>
@@ -290,12 +371,13 @@ const ActivityList: React.FC<ActivityListProps> = ({ onCreateNew, onEdit }) => {
                       <div className="text-sm">
                         <div>{activity.durationLimit}分钟</div>
                         <div className="text-gray-500">
-                          {activity.frequencyValue}{activity.frequencyType === 'daily' ? '次/天' : '次/周期'}
+                          {activity.frequencyValue === '-1' ? '不限次数' : `${activity.frequencyValue}${activity.frequencyType === 'daily' ? '次/天' : '次/周期'}`}
                         </div>
                       </div>
                     </TableCell>
                     <TableCell>{getStatusBadge(activity.status)}</TableCell>
-                    <TableCell>{activity.lastUpdatedBy}</TableCell>
+                    <TableCell>{getApprovalStatusBadge(activity.approvalStatus)}</TableCell>
+                    <TableCell>{activity.submittedBy}</TableCell>
                     <TableCell>
                       <div className="flex gap-1 justify-center">
                         <Button
@@ -314,6 +396,32 @@ const ActivityList: React.FC<ActivityListProps> = ({ onCreateNew, onEdit }) => {
                         >
                           <Eye className="h-4 w-4" />
                         </Button>
+                        
+                        {/* 审核状态相关操作 */}
+                        {activity.approvalStatus === '待提交审核' && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleSubmitForApproval(activity.id)}
+                            className="h-8 w-8 p-0 hover:bg-purple-50"
+                            title="提交审核"
+                          >
+                            <Send className="h-4 w-4" />
+                          </Button>
+                        )}
+                        {(activity.approvalStatus === '审核中' || activity.approvalStatus === '已驳回') && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleViewApprovalDetails(activity.id)}
+                            className="h-8 w-8 p-0 hover:bg-orange-50"
+                            title="查看审核详情"
+                          >
+                            <FileText className="h-4 w-4" />
+                          </Button>
+                        )}
+
+                        {/* 活动状态相关操作 */}
                         {activity.status === '活动中' ? (
                           <Button
                             variant="ghost"
