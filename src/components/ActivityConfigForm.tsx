@@ -61,7 +61,7 @@ const ActivityConfigForm: React.FC<ActivityConfigFormProps> = ({ onSave, onCance
   const [bulkUids, setBulkUids] = useState('');
 
   const userSubTypeOptions = {
-    '全部用户': ['全部用户', '会员新客', '会员老客', '即期会员', '在期会员'],
+    '全部非会员': [],
     'DMP指定人群包': [],
     '离线人群标签': ['高价值用户', '活跃用户', '流失用户', '新注册用户', '付费用户']
   };
@@ -233,29 +233,11 @@ const ActivityConfigForm: React.FC<ActivityConfigFormProps> = ({ onSave, onCance
                   <SelectValue placeholder="请选择用户类型" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="全部用户">全部用户</SelectItem>
+                  <SelectItem value="全部非会员">全部非会员</SelectItem>
                   <SelectItem value="DMP指定人群包">DMP指定人群包</SelectItem>
-                  <SelectItem value="离线人群标签">离线人群标签</SelectItem>
                 </SelectContent>
               </Select>
             </div>
-
-            {/* 子类型选择 */}
-            {config.userType === '全部用户' && (
-              <div className="space-y-2">
-                <Label>用户子类型</Label>
-                <Select value={config.userSubType} onValueChange={(value) => setConfig({ ...config, userSubType: value })}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="请选择用户子类型" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {userSubTypeOptions['全部用户'].map((subType) => (
-                      <SelectItem key={subType} value={subType}>{subType}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
 
             {config.userType === 'DMP指定人群包' && (
               <div className="space-y-2">
@@ -265,22 +247,6 @@ const ActivityConfigForm: React.FC<ActivityConfigFormProps> = ({ onSave, onCance
                   onChange={(e) => setConfig({ ...config, dmpId: e.target.value })}
                   placeholder="请输入DMP ID"
                 />
-              </div>
-            )}
-
-            {config.userType === '离线人群标签' && (
-              <div className="space-y-2">
-                <Label>人群标签</Label>
-                <Select value={config.offlineTag} onValueChange={(value) => setConfig({ ...config, offlineTag: value })}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="请选择人群标签" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {userSubTypeOptions['离线人群标签'].map((tag) => (
-                      <SelectItem key={tag} value={tag}>{tag}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
               </div>
             )}
           </div>
@@ -398,7 +364,7 @@ const ActivityConfigForm: React.FC<ActivityConfigFormProps> = ({ onSave, onCance
             <Label>清晰度限免规则</Label>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-4">
-                <Label>限免时长</Label>
+                <Label>每次限免试用时长</Label>
                 <RadioGroup 
                   value={config.durationLimitType} 
                   onValueChange={(value) => setConfig({ ...config, durationLimitType: value, durationLimitValue: '' })}
@@ -429,7 +395,7 @@ const ActivityConfigForm: React.FC<ActivityConfigFormProps> = ({ onSave, onCance
               </div>
               
               <div className="space-y-2">
-                <Label>限免频次</Label>
+                <Label>每个稿件限免次数</Label>
                 <div className="flex gap-2">
                   <Input
                     type="number"
