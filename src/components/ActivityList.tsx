@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Search, Plus, Edit, Pause, Play, Eye, Trash2, FileText, Send } from "lucide-react";
+import { Search, Plus } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 
@@ -40,7 +41,7 @@ const ActivityList: React.FC<ActivityListProps> = ({ onCreateNew, onEdit }) => {
   const [statusFilter, setStatusFilter] = useState('all');
   const [selectedActivity, setSelectedActivity] = useState<Activity | null>(null);
 
-  // 模拟数据 - 包含所有状态组合
+  // 更新模拟数据 - 根据最新的表单字段结构
   const [activities, setActivities] = useState<Activity[]>([
     {
       id: '1',
@@ -49,7 +50,7 @@ const ActivityList: React.FC<ActivityListProps> = ({ onCreateNew, onEdit }) => {
       endDate: new Date('2024-02-15'),
       userType: '全部非会员',
       contentAids: ['AID001', 'AID002', 'AID003'],
-      durationLimit: '30',
+      durationLimit: 'min [60%稿件时长, 10分钟]',
       frequencyType: 'daily',
       frequencyValue: '3',
       status: '活动中',
@@ -65,7 +66,7 @@ const ActivityList: React.FC<ActivityListProps> = ({ onCreateNew, onEdit }) => {
       userType: 'DMP指定人群包',
       dmpId: 'DMP_12345',
       contentAids: ['AID004', 'AID005'],
-      durationLimit: '60',
+      durationLimit: '30分钟',
       frequencyType: 'campaign',
       frequencyValue: '10',
       status: '待开始',
@@ -81,7 +82,7 @@ const ActivityList: React.FC<ActivityListProps> = ({ onCreateNew, onEdit }) => {
       userType: '离线人群标签',
       offlineTag: '高价值用户',
       contentAids: ['AID006', 'AID007', 'AID008', 'AID009'],
-      durationLimit: '45',
+      durationLimit: 'min [80%稿件时长, 15分钟]',
       frequencyType: 'daily',
       frequencyValue: '5',
       status: '已完成',
@@ -97,7 +98,7 @@ const ActivityList: React.FC<ActivityListProps> = ({ onCreateNew, onEdit }) => {
       userType: '会员新客',
       userSubType: '新注册用户',
       contentAids: ['AID010', 'AID011'],
-      durationLimit: '20',
+      durationLimit: '20分钟',
       frequencyType: 'daily',
       frequencyValue: '2',
       status: '已暂停',
@@ -112,7 +113,7 @@ const ActivityList: React.FC<ActivityListProps> = ({ onCreateNew, onEdit }) => {
       endDate: new Date('2024-02-25'),
       userType: '全部非会员',
       contentAids: ['AID012', 'AID013', 'AID014'],
-      durationLimit: '15',
+      durationLimit: 'min [50%稿件时长, 8分钟]',
       frequencyType: 'campaign',
       frequencyValue: '-1',
       status: '已下线',
@@ -269,12 +270,12 @@ const ActivityList: React.FC<ActivityListProps> = ({ onCreateNew, onEdit }) => {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="font-medium text-sm text-gray-600">限免时长</label>
-                <p className="mt-1">{selectedActivity.durationLimit} 分钟</p>
+                <p className="mt-1">{selectedActivity.durationLimit}</p>
               </div>
               <div>
                 <label className="font-medium text-sm text-gray-600">限免频次</label>
                 <p className="mt-1">
-                  {selectedActivity.frequencyValue} {selectedActivity.frequencyType === 'daily' ? '次/天' : '次/活动周期内'}
+                  {selectedActivity.frequencyValue === '-1' ? '不限次数' : `${selectedActivity.frequencyValue} ${selectedActivity.frequencyType === 'daily' ? '次/天' : '次/活动周期内'}`}
                 </p>
               </div>
             </div>
@@ -369,7 +370,7 @@ const ActivityList: React.FC<ActivityListProps> = ({ onCreateNew, onEdit }) => {
                     </TableCell>
                     <TableCell>
                       <div className="text-sm">
-                        <div>{activity.durationLimit}分钟</div>
+                        <div>{activity.durationLimit}</div>
                         <div className="text-gray-500">
                           {activity.frequencyValue === '-1' ? '不限次数' : `${activity.frequencyValue}${activity.frequencyType === 'daily' ? '次/天' : '次/周期'}`}
                         </div>
@@ -379,75 +380,78 @@ const ActivityList: React.FC<ActivityListProps> = ({ onCreateNew, onEdit }) => {
                     <TableCell>{getApprovalStatusBadge(activity.approvalStatus)}</TableCell>
                     <TableCell>{activity.submittedBy}</TableCell>
                     <TableCell>
-                      <div className="flex gap-1 justify-center">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => onEdit(activity)}
-                          className="h-8 w-8 p-0 hover:bg-blue-50"
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setSelectedActivity(activity)}
-                          className="h-8 w-8 p-0 hover:bg-green-50"
-                        >
-                          <Eye className="h-4 w-4" />
-                        </Button>
+                      <div className="flex flex-col gap-1 items-center">
+                        <div className="flex gap-1">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => onEdit(activity)}
+                            className="text-xs px-2 py-1"
+                          >
+                            编辑
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setSelectedActivity(activity)}
+                            className="text-xs px-2 py-1"
+                          >
+                            查看
+                          </Button>
+                        </div>
                         
-                        {/* 审核状态相关操作 */}
-                        {activity.approvalStatus === '待提交审核' && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleSubmitForApproval(activity.id)}
-                            className="h-8 w-8 p-0 hover:bg-purple-50"
-                            title="提交审核"
-                          >
-                            <Send className="h-4 w-4" />
-                          </Button>
-                        )}
-                        {(activity.approvalStatus === '审核中' || activity.approvalStatus === '已驳回') && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleViewApprovalDetails(activity.id)}
-                            className="h-8 w-8 p-0 hover:bg-orange-50"
-                            title="查看审核详情"
-                          >
-                            <FileText className="h-4 w-4" />
-                          </Button>
-                        )}
+                        <div className="flex gap-1">
+                          {/* 审核状态相关操作 */}
+                          {activity.approvalStatus === '待提交审核' && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleSubmitForApproval(activity.id)}
+                              className="text-xs px-2 py-1"
+                            >
+                              提交审核
+                            </Button>
+                          )}
+                          {(activity.approvalStatus === '审核中' || activity.approvalStatus === '已驳回') && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleViewApprovalDetails(activity.id)}
+                              className="text-xs px-2 py-1"
+                            >
+                              审核详情
+                            </Button>
+                          )}
 
-                        {/* 活动状态相关操作 */}
-                        {activity.status === '活动中' ? (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleStatusChange(activity.id, '已暂停')}
-                            className="h-8 w-8 p-0 hover:bg-yellow-50"
-                          >
-                            <Pause className="h-4 w-4" />
-                          </Button>
-                        ) : activity.status === '已暂停' ? (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleStatusChange(activity.id, '活动中')}
-                            className="h-8 w-8 p-0 hover:bg-green-50"
-                          >
-                            <Play className="h-4 w-4" />
-                          </Button>
-                        ) : null}
+                          {/* 活动状态相关操作 */}
+                          {activity.status === '活动中' ? (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleStatusChange(activity.id, '已暂停')}
+                              className="text-xs px-2 py-1"
+                            >
+                              暂停
+                            </Button>
+                          ) : activity.status === '已暂停' ? (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleStatusChange(activity.id, '活动中')}
+                              className="text-xs px-2 py-1"
+                            >
+                              启动
+                            </Button>
+                          ) : null}
+                        </div>
+
                         <Button
-                          variant="ghost"
+                          variant="outline"
                           size="sm"
                           onClick={() => handleDelete(activity.id)}
-                          className="h-8 w-8 p-0 hover:bg-red-50"
+                          className="text-xs px-2 py-1 text-red-500 border-red-200 hover:bg-red-50"
                         >
-                          <Trash2 className="h-4 w-4 text-red-500" />
+                          删除
                         </Button>
                       </div>
                     </TableCell>
