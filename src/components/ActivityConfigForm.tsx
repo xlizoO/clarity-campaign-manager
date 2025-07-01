@@ -48,8 +48,8 @@ const ActivityConfigForm: React.FC<ActivityConfigFormProps> = ({ onSave, onCance
     offlineTag: initialData?.offlineTag || '',
     userBlacklist: initialData?.userBlacklist || [],
     contentAids: initialData?.contentAids || [],
-    durationLimitType: initialData?.durationLimitType || 'minutes',
-    durationLimitValue: initialData?.durationLimitValue || '',
+    durationLimitType: initialData?.durationLimitType || 'percentage',
+    durationLimitValue: initialData?.durationLimitValue || 'min [60%稿件时长, 10分钟]',
     frequencyType: initialData?.frequencyType || 'daily',
     frequencyValue: initialData?.frequencyValue || '',
   });
@@ -363,7 +363,11 @@ const ActivityConfigForm: React.FC<ActivityConfigFormProps> = ({ onSave, onCance
             <Label>每次限免试用时长</Label>
             <RadioGroup 
               value={config.durationLimitType} 
-              onValueChange={(value) => setConfig({ ...config, durationLimitType: value, durationLimitValue: '' })}
+              onValueChange={(value) => setConfig({ 
+                ...config, 
+                durationLimitType: value, 
+                durationLimitValue: value === 'minutes' ? '' : 'min [60%稿件时长, 10分钟]'
+              })}
               className="flex gap-4"
             >
               <div className="flex items-center space-x-2">
@@ -372,21 +376,21 @@ const ActivityConfigForm: React.FC<ActivityConfigFormProps> = ({ onSave, onCance
               </div>
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="percentage" id="percentage" />
-                <Label htmlFor="percentage">ep时长百分比</Label>
+                <Label htmlFor="percentage">稿件/ep时长百分比</Label>
               </div>
             </RadioGroup>
             
             <div className="flex gap-2 items-center">
               <Input
-                type="number"
+                type={config.durationLimitType === 'minutes' ? 'number' : 'text'}
                 value={config.durationLimitValue}
                 onChange={(e) => setConfig({ ...config, durationLimitValue: e.target.value })}
-                placeholder={config.durationLimitType === 'minutes' ? "输入分钟数" : "输入百分比"}
+                placeholder={config.durationLimitType === 'minutes' ? "输入分钟数" : "min [xx%稿件时长, xx分钟]"}
                 className="flex-1"
               />
-              <span className="text-sm text-gray-500">
-                {config.durationLimitType === 'minutes' ? '分钟' : '%'}
-              </span>
+              {config.durationLimitType === 'minutes' && (
+                <span className="text-sm text-gray-500">分钟</span>
+              )}
             </div>
           </div>
 
